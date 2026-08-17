@@ -17,7 +17,9 @@ function Adaylar() {
 
   useEffect(() => {
     loadAdaylar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, alan, durum]);
+
 
   const loadAdaylar = async () => {
     setLoading(true);
