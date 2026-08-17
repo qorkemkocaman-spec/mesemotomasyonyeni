@@ -1,0 +1,60 @@
+# Bağımlılıklar
+node_modules/
+**/node_modules/
+
+# Build çıktıları
+build/
+dist/
+**/build/
+**/dist/
+
+# Veritabanı dosyaları
+*.db
+*.sqlite
+*.sqlite3
+backend/data/
+
+# Log dosyaları
+*.log
+logs/
+**/logs/
+
+# Ortam değişkenleri
+.env
+.env.local
+.env.development
+.env.production
+
+# Git dosyaları
+.git/
+.gitignore
+
+# IDE dosyaları
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# İşletim sistemi dosyaları
+.DS_Store
+Thumbs.db
+
+# npm/yarn cache
+.npm/
+.yarn/
+package-lock.json
+yarn.lock
+
+# Test çıktıları
+coverage/
+**/coverage/
+
+# Geçici dosyalar
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Playwright tarayıcı dosyaları
+ms-playwright/
+**/ms-playwright/
