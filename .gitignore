@@ -33,3 +33,5 @@ Thumbs.db
 
 # Eski program (GitHub'a yüklenmeyecek)
 eski-program/
+.vercel
+.env*

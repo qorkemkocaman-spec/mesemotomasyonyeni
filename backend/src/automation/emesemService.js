@@ -1,5 +1,12 @@
-const { chromium } = require('playwright');
 const db = require('../db/database');
+
+// Playwright'ı dinamik olarak yükle (Vercel'de çalışmaz, sadece yerel ortamda)
+let chromium = null;
+try {
+  ({ chromium } = require('playwright'));
+} catch (e) {
+  console.log('Playwright yüklenemedi (Vercel ortamı). E-MESEM otomasyonu devre dışı.');
+}
 
 /**
  * E-MESEM Otomasyon Servisi
@@ -28,6 +35,9 @@ class EmesemService {
    * chrome.exe --remote-debugging-port=9222
    */
   async connectToBrowser(port = 9222) {
+    if (!chromium) {
+      return { success: false, message: 'Playwright yüklenemedi. E-MESEM otomasyonu sadece yerel ortamda çalışır.' };
+    }
     try {
       this.browser = await chromium.connectOverCDP(`http://localhost:${port}`);
       const contexts = this.browser.contexts();

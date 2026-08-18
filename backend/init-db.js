@@ -1,107 +1,12 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-// PostgreSQL bağlantı havuzu
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/emesem',
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+  connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_mB9vDL5JpZKS@ep-autumn-lake-avsnwmgh.c-11.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+  ssl: { rejectUnauthorized: false }
 });
 
-// SQLite ? placeholder'larını PostgreSQL $1, $2... placeholder'larına çevir
-function convertPlaceholders(sql) {
-  let index = 0;
-  return sql.replace(/\?/g, () => `$${++index}`);
-}
-
-// SQLite API'sini taklit eden wrapper
-const db = {
-  // db.run(sql, params, callback) - INSERT, UPDATE, DELETE
-  run(sql, params = [], callback) {
-    if (typeof params === 'function') {
-      callback = params;
-      params = [];
-    }
-    const pgSql = convertPlaceholders(sql);
-    pool.query(pgSql, params)
-      .then(result => {
-        if (callback) {
-          // SQLite'ın run callback'i this.lastID ve this.changes içerir
-          const ctx = {
-            lastID: result.rows[0]?.id || result.rows[0]?.lastval() || null,
-            changes: result.rowCount
-          };
-          callback.call(ctx, null);
-        }
-      })
-      .catch(err => {
-        if (callback) callback(err);
-      });
-  },
-
-  // db.get(sql, params, callback) - Tek satır döndürür
-  get(sql, params = [], callback) {
-    if (typeof params === 'function') {
-      callback = params;
-      params = [];
-    }
-    const pgSql = convertPlaceholders(sql);
-    pool.query(pgSql, params)
-      .then(result => {
-        if (callback) callback(null, result.rows[0] || null);
-      })
-      .catch(err => {
-        if (callback) callback(err);
-      });
-  },
-
-  // db.all(sql, params, callback) - Tüm satırları döndürür
-  all(sql, params = [], callback) {
-    if (typeof params === 'function') {
-      callback = params;
-      params = [];
-    }
-    const pgSql = convertPlaceholders(sql);
-    pool.query(pgSql, params)
-      .then(result => {
-        if (callback) callback(null, result.rows);
-      })
-      .catch(err => {
-        if (callback) callback(err);
-      });
-  },
-
-  // Promise tabanlı versiyonlar
-  runAsync(sql, params = []) {
-    const pgSql = convertPlaceholders(sql);
-    return pool.query(pgSql, params);
-  },
-
-  getAsync(sql, params = []) {
-    const pgSql = convertPlaceholders(sql);
-    return pool.query(pgSql, params).then(r => r.rows[0] || null);
-  },
-
-  allAsync(sql, params = []) {
-    const pgSql = convertPlaceholders(sql);
-    return pool.query(pgSql, params).then(r => r.rows);
-  },
-
-  // serialize - SQLite uyumluluğu için no-op
-  serialize() {},
-
-  // close - bağlantıyı kapat
-  close() {
-    return pool.end();
-  },
-
-  // pool'a erişim
-  getPool() {
-    return pool;
-  }
-};
-
-// Veritabanı tablolarını oluştur
-async function initDatabase() {
+async function init() {
   try {
     // Kullanıcılar tablosu
     await pool.query(`
@@ -242,7 +147,7 @@ async function initDatabase() {
       )
     `);
 
-    // Varsayılan admin kullanıcısı oluştur
+    // Varsayılan admin kullanıcısı
     const defaultPassword = bcrypt.hashSync('admin123', 10);
     await pool.query(
       `INSERT INTO users (username, password, full_name, role)
@@ -251,13 +156,13 @@ async function initDatabase() {
       ['admin', defaultPassword, 'Sistem Yöneticisi', 'admin']
     );
 
-    console.log('Veritabanı tabloları oluşturuldu');
+    console.log('Veritabanı tabloları başarıyla oluşturuldu!');
+    await pool.end();
   } catch (err) {
-    console.error('Veritabanı başlatma hatası:', err);
+    console.error('Hata:', err.message);
+    await pool.end();
+    process.exit(1);
   }
 }
 
-// Başlat
-initDatabase();
-
-module.exports = db;
+init();
